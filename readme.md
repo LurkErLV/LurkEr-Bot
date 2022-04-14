@@ -34,5 +34,5 @@ GUILD_ID = YOUR_DEV_GUILD_ID
 ENV = development/production    
 ```
 
-## Bot invite to discord server
+## Bot invite link to discord server
 ``https://discord.com/oauth2/authorize?client_id=YOUR_BOT_ID&permissions=8&scope=bot%20applications.commands``
