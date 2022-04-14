@@ -23,9 +23,9 @@
 
 Copy this code with your VALUES
 ``
-TOKEN = YOUR_TOKEN  
-GUILD_ID = YOUR_DEV_GUILD_ID  
-ENV = development/production
+TOKEN = YOUR_TOKEN <br />
+GUILD_ID = YOUR_DEV_GUILD_ID <br />
+ENV = development/production <br />
 ``
 
 ## Bot invite to discord server
