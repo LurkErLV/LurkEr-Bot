@@ -15,16 +15,22 @@
 
 ## How to run bot
 > npm install
+
 > npm i -g nodemon
+
 > Create .env file
+
 > npm run dev
 
 ## .env
 
 Copy this code with your VALUES
+
 ``
 TOKEN = YOUR_TOKEN  
+
 GUILD_ID = YOUR_DEV_GUILD_ID    
+
 ENV = development/production    
 ``
 
