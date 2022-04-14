@@ -51,7 +51,7 @@ module.exports = {
             [calculateNextLevelExp(row.level + 1), memberId]
           );
           member.channel.send(
-            `<@${memberId}>, you level upped your level to ${
+            `<@${memberId}>, you level upped level to lvl ${
               row.level + 1
             }! Congratulations!`
           );

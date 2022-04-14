@@ -3,10 +3,12 @@ const Canvas = require("canvas");
 const { MessageAttachment } = require("discord.js");
 const db = require("../db/database");
 
-function registerUser(guildId, memberId) {
-  db.prepare(`INSERT INTO '${guildId}' VALUES(?,?,?,?)`)
-              .run(memberId, 0, 1, calculateNextLevelExp(1))
-              .finalize();
+const colors = {
+  background: "#485696",
+  backgroundStroke: "#FC7A1E",
+  progressBar: "#F9C784",
+  progressBarStroke: "#FC7A1E",
+  textColor: "#E7E7E7"
 }
 
 module.exports = {
@@ -18,67 +20,77 @@ module.exports = {
 
     db.get(
       `SELECT * FROM '${guild}' WHERE userid = ?`,
-      [interaction.member.guild.ownerId],
+      [interaction.user.id],
       async (err, row) => {
         if (!row) {
-          registerUser(guild, interaction.member.guild.ownerId);
+          return console.error("User isn't registred!");
         }
-        
+
         let xp = row.xp;
-        let level = row.level;
-        let toNextLevel = row.tonextlevel;
+        let lvl = row.level;
+        let toLvlUp = row.tonextlevel;
 
         function progressBar(exp, nextLevelExp) {
-          let result = (exp / nextLevelExp) * 450;
-          if (result < 38) {
-            result += 38;
+          let result = (exp / nextLevelExp) * 650;
+          if (result < 30) {
+            result += 30;
           }
           return result;
         }
 
-        const canvas = Canvas.createCanvas(700, 250);
-        const context = canvas.getContext("2d");
+        const canvas = Canvas.createCanvas(700, 550);
+        const ctx = canvas.getContext("2d");
 
-        context.fillStyle = "#081c15";
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+          ctx.fillStyle = colors.background; // Background color
+          ctx.fillRect(0, 0, 700, 550);
 
-        // Progress bar
-        context.strokeStyle = "#40916c";
-        context.fillStyle = "#40916c";
-        roundRect(context, 225, 175, progressBar(xp, toNextLevel), 50, 25, true);
+          ctx.strokeStyle = colors.backgroundStroke; // Background stroke color
+          ctx.lineWidth = 15; // Stroke line width
+          ctx.strokeRect(0, 0, 700, 550);
+        ctx.closePath();
 
-        context.strokeStyle = "#2D6A4F";
-        context.lineWidth = 5;
-        roundRect(context, 225, 175, 450, 50, 25, false);
+        ctx.beginPath();
+          ctx.font = applyText(canvas, interaction.member.displayName);
+          ctx.fillStyle = colors.textColor; // Member text color
+          ctx.fillText(interaction.member.displayName, 245, 75);
+        ctx.closePath();
 
-        context.strokeStyle = "#1b4332";
-        context.lineWidth = 20;
-        context.strokeRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+          ctx.fillStyle = colors.progressBar; // Progress bar color
+          roundRect(ctx, 25, 285, progressBar(xp, toLvlUp), 50, 25, true, false);
+        ctx.closePath();
 
-        context.font = applyText(canvas, `${xp}/${toNextLevel}`);
-        context.fillStyle = "#40916c";
-        context.fillText(`${xp}/${toNextLevel}`, 365, 160);
+        ctx.beginPath();
+          ctx.strokeStyle = colors.progressBarStroke; // Progress bar stroke color
+          ctx.lineWidth = 8;
+          roundRect(ctx, 25, 285, 650, 50, 25, false);
+        ctx.closePath();
 
-        context.font = applyText(canvas, interaction.member.displayName);
-        context.fillStyle = "#40916c";
-        context.fillText(interaction.member.displayName, 245, 75);
+        ctx.beginPath();
+          ctx.font = applyText(canvas, `${xp}/${toLvlUp}`);
+          ctx.fillStyle = colors.textColor; // XP color
+          ctx.fillText(`${xp}/${toLvlUp}`, 25, 400);
+        ctx.closePath();
 
-        context.beginPath();
-        context.font = applyText(canvas, `LVL ${level}`);
-        context.fillStyle = "#40916c";
-        context.fillText(`LVL ${level}`, 500, 75);
-        context.closePath();
+        ctx.beginPath();
+          ctx.font = applyText(canvas, `LVL ${lvl}`);
+          ctx.fillStyle = colors.textColor; // LVL color
+          ctx.fillText(`LVL ${lvl}`, 25, 530);
+        ctx.closePath();
 
-        context.beginPath();
-        context.arc(125, 125, 100, 0, Math.PI * 2, true);
-        context.closePath();
-        context.clip();
+        ctx.beginPath(); // Make avatar circle
+          ctx.beginPath();
+            ctx.arc(125, 125, 100, 0, Math.PI * 2, true);
+          ctx.closePath();
+          ctx.clip();
 
-        const avatar = await Canvas.loadImage(
-          interaction.user.displayAvatarURL({ format: "jpg" })
-        );
+          const avatar = await Canvas.loadImage(
+            interaction.user.displayAvatarURL({ format: "jpg" })
+          ); 
 
-        context.drawImage(avatar, 25, 25, 200, 200);
+          ctx.drawImage(avatar, 25, 25, 200, 200); // Avatar
+        ctx.closePath();
 
         const attachment = new MessageAttachment(
           canvas.toBuffer(),
@@ -87,20 +99,20 @@ module.exports = {
 
         interaction.reply({ files: [attachment] });
       }
-    )
+    );
   },
 };
 
 const applyText = (canvas, text) => {
-  const context = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
 
   let fontSize = 50;
 
   do {
-    context.font = `${(fontSize -= 10)}px sans-serif`;
-  } while (context.measureText(text).width > canvas.width - 300);
+    ctx.font = `${(fontSize -= 10)}px sans-serif`;
+  } while (ctx.measureText(text).width > canvas.width - 300);
 
-  return context.font;
+  return ctx.font;
 };
 
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
@@ -128,7 +140,3 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
     ctx.fill();
   }
 }
-
-    function calculateNextLevelExp(lvl) {
-      return Math.round((lvl / 0.12) * (lvl / 0.12));
-    }
